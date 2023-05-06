@@ -75,4 +75,47 @@ UNION ALL
 SELECT model, price AS max_price FROM Printer)
 SELECT DISTINCT model FROM model_count WHERE max_price = (SELECT MAX(max_price) FROM model_count)
 
+25. Найдите производителей принтеров, которые производят ПК с наименьшим объемом RAM и с самым быстрым процессором среди всех ПК, имеющих наименьший объем RAM. Вывести: Maker
 
+WITH data AS
+(SELECT maker, speed, ram
+FROM product
+JOIN PC ON PC.model = Product.model
+WHERE type = 'PC' AND maker IN (SELECT maker FROM Product WHERE type = 'Printer')
+and ram = (SELECT MIN(ram) FROM PC))
+SELECT DISTINCT maker
+FROM data
+WHERE speed = (SELECT MAX(speed) FROM data)
+
+26. Найдите среднюю цену ПК и ПК-блокнотов, выпущенных производителем A (латинская буква). Вывести: одна общая средняя цена.
+
+WITH data AS
+(SELECT maker, price
+FROM Product
+JOIN PC ON PC.model = Product.model
+WHERE maker = 'A'
+UNION ALL
+SELECT maker, price
+FROM Product
+JOIN Laptop ON Laptop.model = Product.model
+WHERE maker = 'A')
+SELECT AVG(price) as avg_price_PC_Laptop_A
+FROM data
+GROUP BY maker
+
+27. Найдите средний размер диска ПК каждого из тех производителей, которые выпускают и принтеры. Вывести: maker, средний размер HD.
+
+SELECT maker, AVG(hd) as hd_avg
+FROM Product
+JOIN PC ON PC.model = Product.model
+WHERE maker IN (SELECT maker FROM Product WHERE type = 'Printer')
+GROUP BY maker
+
+28. Используя таблицу Product, определить количество производителей, выпускающих по одной модели.
+
+WITH data AS
+(SELECT COUNT(maker) as qty
+FROM Product
+GROUP BY maker)
+SELECT COUNT(qty)
+FROM data WHERE qty = 1
